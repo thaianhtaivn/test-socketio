@@ -2,44 +2,69 @@ import React, {Component} from 'react';
 import logo from './logo.svg';
 import './App.css';
 import socketIOClient from "socket.io-client";
-var socket, client;
+import 'bootstrap/dist/css/bootstrap.min.css';
+import {Dropdown, DropdownMenu} from 'react-bootstrap';
+var socket;
 class App extends React.Component{
   constructor(props){
     super(props);
     this.state={
-      endpoint: "localhost:1234"
+      endpoint: "localhost:1234",
+      counter: [1,2,3,4,5,6,7,8,9,10,11],
+      activecounter:1,
+      greeting:'HELLO',
+      status:"fail"
     };
-    var net = require('net');
+    this.SelectCounter=this.SelectCounter.bind(this)
+    this.handle_Button=this.handle_Button.bind(this)
+    socket = socketIOClient(this.state.endpoint);
+  }
+  componentWillMount(){
+    socket.on('connect', () => {
+      socket.on('Server-greeting',function(data){
+        // <h3>Server connected!</h3>
+        console.log(data);
 
-    var client = new net.Socket();
-
-  // socket = socketIOClient(this.state.endpoint);
-  // net = require('net');
-  // client = new net.Socket();
+      })
+      socket.emit("Client-counter",this.state.activecounter)
+    });
+  }
+  componentDidMount(){
+    socket.on("Update",function(data){
+      console.log("Sever said: "+data);
+    })
 
   }
-  handle_React(){
-
-    console.log("This is image")
-
-
-// client.connect(52275, '127.0.0.1', function() {
-// 	console.log('Connected');
-// 	client.write('Hello, server! Love, Client.');
-// });
-
+  handle_Button(){
+    socket.emit("Client-send-data","Client: "+this.state.activecounter+" Rate");
+    // socket.on("Update",function(data){
+    //   console.log(data);
+    // })
+  }
+  SelectCounter(evt){
+    this.setState({activecounter: evt});
+    socket.emit("Client-send-data", "New: "+this.state.activecounter)
   }
   render(){
-    client.connect(1234, 'localhost', function() {
-      console.log('Connected');
-      // client.write('Client connected');
-      client.write('Hello, server! Love, Client.');
-    });
 
     return (
       <div className="App">
         <header className="App-header">
-          <img src={logo} onClick={this.handle_React} className="App-logo" alt="logo" />
+        <Dropdown onSelect={this.SelectCounter} >
+          <Dropdown.Toggle variant="success" id="dropdown-basic" >
+            Choose Counter: {this.state.activecounter}
+          </Dropdown.Toggle>
+          <Dropdown.Menu>
+            {this.state.counter.map( (id) =>(
+              <Dropdown.Item eventKey={id} >
+                {id}
+              </Dropdown.Item>
+              )
+            )}
+          </Dropdown.Menu>
+        </Dropdown>
+        <p></p>
+          <img src={logo} onClick={this.handle_Button} className="App-logo" alt="logo" />
           <p >
             Edit <code>src/App.js</code> and save to reload.
           </p>
@@ -51,6 +76,7 @@ class App extends React.Component{
           >
             Learn React
           </a>
+
         </header>
       </div>
     );
