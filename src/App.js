@@ -9,11 +9,12 @@ class App extends React.Component{
   constructor(props){
     super(props);
     this.state={
-      endpoint: "localhost:1234",
+      endpoint: "localhost:5000",
       counter: [1,2,3,4,5,6,7,8,9,10,11],
       activecounter:1,
       greeting:'HELLO',
-      status:"fail"
+      status:"fail",
+      response: ''
     };
     this.SelectCounter=this.SelectCounter.bind(this)
     this.handle_Button=this.handle_Button.bind(this)
@@ -30,6 +31,12 @@ class App extends React.Component{
     });
   }
   componentDidMount(){
+
+    this.callApi()
+      .then(res => this.setState({ response: res.express }))
+      .catch(err => console.log(err));
+
+
     socket.on("Update",function(data){
       console.log("Sever said: "+data);
     })
@@ -38,13 +45,23 @@ class App extends React.Component{
   handle_Button(){
     socket.emit("Client-send-data","Client: "+this.state.activecounter+" Rate");
     // socket.on("Update",function(data){
-    //   console.log(data);
+      console.log("React: "+this.state.activecounter);
     // })
   }
   SelectCounter(evt){
     this.setState({activecounter: evt});
     socket.emit("Client-send-data", "New: "+this.state.activecounter)
   }
+
+  callApi = async () => {
+    const response = await fetch('/api/hello');
+    const body = await response.json();
+
+    if (response.status !== 200) throw Error(body.message);
+
+    return body;
+    };
+
   render(){
 
     return (
@@ -78,6 +95,7 @@ class App extends React.Component{
           </a>
 
         </header>
+        <p className="App-intro">{this.state.response}</p>
       </div>
     );
   }

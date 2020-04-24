@@ -1,7 +1,7 @@
 const express = require('express')
 const http = require('http')
 const socketIO = require('socket.io')
-const port = 1234 //port to React Webapp
+const port = 5000 //port to React Webapp
 const app = express()
 const server = http.createServer(app)
 const io = socketIO(server) // Socket IO server
@@ -26,7 +26,7 @@ io.on('connect', socket => {
 	socket.on('Client-send-data', function(data){
 		socket.emit("Update","ok")
 		console.log(data);
-		// client.write(data+'\r\n');
+		client.write(data+'\r\n');
 });
 
 socket.on('disconnect', () => {
